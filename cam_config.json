@@ -1,0 +1,21 @@
+{
+    "GainControl" : {
+        "GainAuto" : false ,
+        "GainRaw" : 42
+    } ,
+    "Exposure " : {
+        "ExposureAuto" : true ,
+        "ExposureTimeRaw" : 4242
+    } ,
+    "BalanceWhite " : {
+        "BalanceWhiteAuto" : false ,
+        "BalanceRatioRaw " : 3280
+    } ,
+    "PixelColorFilter" : "BayerRG12 packed" ,
+    "Binning" : {
+        "BinningVertical" : 8 ,
+
+        "BinningHorizontal " : 1
+    } ,
+    "AcquisitionFrameRateAbs" : 2.333
+}
