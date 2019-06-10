@@ -6,25 +6,29 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <utility>      // std::pair, std::make_pair
+#include <stdlib.h>     /* atof */
+#include <cstdlib>
+
 #include "json.h"
 
 Settings::Settings(){
-    gain.GainAuto = false;
-    gain.GainRaw  = 0;
+    GainControl.GainAuto = false;
+    GainControl.GainRaw  = 0;
 
-    exposure.ExposureAuto     = false;
-    exposure.ExposureTimeRaw  = 0;
+    Exposure.ExposureAuto     = false;
+    Exposure.ExposureTimeRaw  = 0;
 
-    balance.BalanceWhiteAuto = false;
-    balance.BalanceWhiteRaw  = 0;
+    BalanceWhite.BalanceWhiteAuto = false;
+    BalanceWhite.BalanceWhiteRaw  = 0;
 
     AutoTargetValue = 0;
     PixelFormat     = "YUV422";
 
-    resolution.Width  = 1224;
-    resolution.Height = 1024;
+    Resolution.Width  = 1224;
+    Resolution.Height = 1024;
 
-    AcqusitionFrameRateAbs = 25;
+    AcquisitionFrameRateAbs = 25;
     FlashOn = true;
 }
 
@@ -54,6 +58,13 @@ std::string removingSpaces(std::ifstream & file){
 
 }
 
+std::string removingQmarks(std::string & line){
+    std::size_t lQmark = line.find('"');
+    std::size_t rQmark = line.find('"', ++lQmark);
+
+    return line.substr(lQmark, rQmark - lQmark);
+}
+
 bool isBracketsValid(std::size_t l, std::size_t r){
     return  !((l == std::string::npos) ||
               (r == std::string::npos) ||
@@ -65,6 +76,10 @@ bool isFollowingStructure(const std::string & line, std::size_t from=0){
     std::size_t bracket = line.find('{', from);
 
     return (bracket < comma);
+}
+
+bool convertStrToBool(std::string line){
+    return  (line == "true");
 }
 
 std::string readingKey(const std::string & line, std::size_t & cursor){
@@ -115,36 +130,99 @@ std::string findingStucture(const std::string & line, std::size_t & cursor){
     return line.substr(rigidL, rigidR - rigidL);
 }
 
-std::map<std::string, std::string>
+std::pair <std::string,std::string>
 readingField(const std::string & line, std::size_t & cursor){
-    std::map<std::string, std::string> field;
-
     std::string key = readingKey(line, cursor);
-
+    std::string val;
 
     if (isFollowingStructure(line, ++cursor)){
-        field[key] = findingStucture(line, cursor);
+        val = findingStucture(line, cursor);
     }else{
-        field[key] = readingVal(line, cursor);
+        val = readingVal(line, cursor);
     }
 
-    std::cout << "KEY:" << key << std::endl;
-    std::cout << "VAL:" << field[key] << std::endl;
+    std::pair <std::string,std::string> field (key, val);
 
     return field;
 }
 
-void readingStructure(const std::string & line, std::size_t cursor=0){
+std::map  <std::string, std::string>
+readingStructure(const std::string & line, std::size_t cursor=0){
     std::size_t lBracket = line.find ('{');
     std::size_t rBracket = line.rfind('}');
 
-    if (!isBracketsValid(lBracket, rBracket)) return;
+    std::pair <std::string, std::string> field;
+    std::map  <std::string, std::string> fields;
+
+    if (!isBracketsValid(lBracket, rBracket))
+        return fields;
     lBracket++;
     rBracket--;
 
-    while(cursor < rBracket)
-        std::map<std::string, std::string> field(readingField(line.substr(lBracket, rBracket), cursor));
 
+    while(cursor < rBracket){
+        field = readingField(line.substr(lBracket, rBracket), cursor);
+        fields[field.first] = field.second;
+    }
+
+    return fields;
+}
+
+void Settings::fillingGainControl(std::string line){
+    std::map  <std::string, std::string> fields = readingStructure(line);
+
+    std::map<std::string,std::string>::iterator it = fields.find("GainAuto");
+    if (it == fields.end()) return;
+    GainControl.GainAuto = convertStrToBool(it->second);
+
+    it = fields.find("GainRaw");
+    if (it == fields.end()) return;
+    GainControl.GainRaw = atoi(it->second.c_str());
+}
+
+void Settings::fillingExposure(std::string line){
+    std::map  <std::string, std::string> fields = readingStructure(line);
+
+    std::map<std::string,std::string>::iterator it = fields.find("ExposureTimeRaw");
+    if (it == fields.end()) return;
+    Exposure.ExposureTimeRaw = convertStrToBool(it->second);
+
+    it = fields.find("ExposureTimeRaw");
+    if (it == fields.end()) return;
+    Exposure.ExposureAuto = atoi(it->second.c_str());
+}
+
+void Settings::fillingBalanceWhite(std::string line) {
+    std::map  <std::string, std::string> fields = readingStructure(line);
+
+    std::map<std::string,std::string>::iterator it = fields.find("BalanceWhiteRaw");
+    if (it == fields.end()) return;
+    BalanceWhite.BalanceWhiteRaw = convertStrToBool(it->second);
+
+    it = fields.find("ExposureTimeRaw");
+    if (it == fields.end()) return;
+    Exposure.ExposureAuto = atoi(it->second.c_str());
+}
+
+void Settings::fillingSettings(std::map<std::string, std::string> & fields){
+    std::map<std::string,std::string>::iterator fuckingIterator = fields.find("AcquisitionFrameRateAbs");
+    AcquisitionFrameRateAbs = strtod(fuckingIterator->second.c_str(), NULL);
+
+    fuckingIterator = fields.find("FlashOn");
+    FlashOn = convertStrToBool(fuckingIterator->second);
+
+    fuckingIterator = fields.find("PixelFormat");
+    PixelFormat = removingQmarks(fuckingIterator->second);
+
+    fuckingIterator = fields.find("GainControl");
+    fillingGainControl(fuckingIterator->second);
+
+    fuckingIterator = fields.find("Exposure");
+    fillingExposure(fuckingIterator->second);
+
+    std::cout << AcquisitionFrameRateAbs << " " << FlashOn << " " << PixelFormat << std::endl;
+    std::cout << GainControl.GainRaw << " " << GainControl.GainAuto << std::endl;
+    std::cout << Exposure.ExposureAuto << " " << Exposure.ExposureTimeRaw << std::endl;
 }
 
 void Settings::extract(const char * from){
@@ -153,7 +231,8 @@ void Settings::extract(const char * from){
     if (!isValidFile(file)) return;
 
     std::string dataLine = removingSpaces(file);
-    readingStructure(dataLine);
+    std::map  <std::string, std::string> fields = readingStructure(dataLine);
+    fillingSettings(fields);
     file.close();
 
 

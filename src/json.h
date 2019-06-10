@@ -6,25 +6,35 @@
 #define JSON_PARSER_JSON_H
 
 #include <string>
+#include <map>
 
 struct Settings {
-    Settings();
+private:
+    void fillingSettings(std::map<std::string, std::string> & fields);
+
+    void fillingGainControl (std::string line);
+    void fillingExposure    (std::string line);
+    void fillingBalanceWhite(std::string line);
+
+public:
+    explicit Settings();
     void extract(const char * from);
 
 private:
     struct GainControl{
         bool GainAuto;
         int GainRaw;
-    } gain;
+    } GainControl;
 
     struct Exposure{
         bool ExposureAuto;
         int ExposureTimeRaw;
-    } exposure;
+    } Exposure;
+
     struct BalanceWhite{
         bool BalanceWhiteAuto;
         float BalanceWhiteRaw;
-    } balance;
+    } BalanceWhite;
 
     int AutoTargetValue;
     std::string PixelFormat;
@@ -32,9 +42,9 @@ private:
     struct Resolution{
         int Width;
         int Height;
-    } resolution;
+    } Resolution;
 
-    float AcqusitionFrameRateAbs;
+    double AcquisitionFrameRateAbs;
     bool FlashOn;
 };
 
