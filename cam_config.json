@@ -1,21 +1,21 @@
 {
-    "GainControl" : {
-        "GainAuto" : false ,
-        "GainRaw" : 42
-    } ,
-    "Exposure " : {
-        "ExposureAuto" : true ,
-        "ExposureTimeRaw" : 4242
-    } ,
-    "BalanceWhite " : {
-        "BalanceWhiteAuto" : false ,
-        "BalanceRatioRaw " : 3280
-    } ,
-    "PixelColorFilter" : "BayerRG12 packed" ,
-    "Binning" : {
-        "BinningVertical" : 8 ,
-
-        "BinningHorizontal " : 1
-    } ,
-    "AcquisitionFrameRateAbs" : 2.333
+    "Mode": 2,
+    "GainControl": {
+        "GainAuto": false,
+        "GainRaw": 42
+    },
+    "Exposure": {
+        "ExposureAuto": true,
+        "ExposureTimeRaw": 0
+    },
+    "BalanceWhite": {
+        "BalanceWhiteAuto": false,
+        "BalanceRatioRaw": 1.2
+    },
+    "AutoTargetValue": 128,
+    "AutoFunctionProfile" : "None",
+    "PixelFormat": "YUV422",
+    "Resolution": "1224x1024",
+    "AcquisitionFrameRateAbs": 1.9,
+    "FlashOn": true
 }
