@@ -5,13 +5,39 @@
 #ifndef JSON_PARSER_JSON_H
 #define JSON_PARSER_JSON_H
 
-#include <fstream>
-#include <iostream>
-#include "support.h"
+#include <string>
 
+struct Settings {
+    Settings();
+    void extract(const char * from);
 
-void read_json(std::ifstream & file, std::string & to_long_line);
+private:
+    struct GainControl{
+        bool GainAuto;
+        int GainRaw;
+    } gain;
 
-void get_data(std::string & line);
+    struct Exposure{
+        bool ExposureAuto;
+        int ExposureTimeRaw;
+    } exposure;
+    struct BalanceWhite{
+        bool BalanceWhiteAuto;
+        float BalanceWhiteRaw;
+    } balance;
+
+    int AutoTargetValue;
+    std::string PixelFormat;
+
+    struct Resolution{
+        int Width;
+        int Height;
+    } resolution;
+
+    float AcqusitionFrameRateAbs;
+    bool FlashOn;
+};
+
 
 #endif //JSON_PARSER_JSON_H
+
