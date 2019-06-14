@@ -8,13 +8,15 @@ find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
 file(GLOB UNIT_SOURCES unit/*.cpp unit/*.h)
+file(GLOB SOURCES ../src/*.cpp ../src/*.h)
 
 set(UNIT_TEST_SOURCE_FILES
         tmain.cpp
         ${UNIT_SOURCES}
+        ${SOURCES}
         )
 
-include_directories(../src)
+include_directories(../src/)
 
 # Link runTests with what we want to test and the GTest and pthread library
 add_executable(json-parser-io-unit-test ${UNIT_TEST_SOURCE_FILES})

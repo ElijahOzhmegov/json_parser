@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 
-TEST(Generic, local_class)
+TEST(BigPortal, local_portal)
 {
     int value = 777;
     struct priv{

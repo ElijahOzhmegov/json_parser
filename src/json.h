@@ -49,5 +49,11 @@ private:
 };
 
 
+#ifdef TEST_PARSER
+
+bool isValidFile(std::ifstream & file);
+
+#endif //TEST_PARSER
+
 #endif //JSON_PARSER_JSON_H
 
