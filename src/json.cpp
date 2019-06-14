@@ -42,6 +42,7 @@ bool isValidFile(std::ifstream & file){
     }
 }
 
+// removing line separator as well
 std::string removingSpaces(std::ifstream & file){
     using namespace std;
     string data;

@@ -52,6 +52,8 @@ private:
 #ifdef TEST_PARSER
 
 bool isValidFile(std::ifstream & file);
+std::string removingSpaces(std::ifstream & file);
+std::string removingQmarks(std::string & line);
 
 #endif //TEST_PARSER
 
