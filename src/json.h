@@ -10,7 +10,7 @@
 
 struct Settings {
 private:
-    void fillingSettings(std::map<std::string, std::string> & fields);
+    void fillingSettings    (std::map<std::string, std::string> & fields);
 
     void fillingGainControl (std::string line);
     void fillingExposure    (std::string line);
@@ -23,16 +23,16 @@ public:
 private:
     struct GainControl{
         bool GainAuto;
-        int GainRaw;
+        int  GainRaw;
     } GainControl;
 
     struct Exposure{
         bool ExposureAuto;
-        int ExposureTimeRaw;
+        int  ExposureTimeRaw;
     } Exposure;
 
     struct BalanceWhite{
-        bool BalanceWhiteAuto;
+        bool  BalanceWhiteAuto;
         float BalanceWhiteRaw;
     } BalanceWhite;
 
@@ -45,7 +45,7 @@ private:
     } Resolution;
 
     double AcquisitionFrameRateAbs;
-    bool FlashOn;
+    bool   FlashOn;
 };
 
 
@@ -53,7 +53,10 @@ private:
 
 bool isValidFile(std::ifstream & file);
 std::string removingSpaces(std::ifstream & file);
-std::string removingQmarks(std::string & line);
+std::string extractFromQmarks(std::string & line);
+bool isBracketsValid(std::size_t l, std::size_t r);
+bool isFollowingStructure(const std::string & line, std::size_t from=0);
+bool convertStrToBool(std::string line);
 
 #endif //TEST_PARSER
 

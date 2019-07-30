@@ -25,21 +25,18 @@ Settings::Settings(){
     AutoTargetValue = 0;
     PixelFormat     = "YUV422";
 
-    Resolution.Width  = 1224;
+    Resolution.Width  = 1024;
     Resolution.Height = 1024;
 
-    AcquisitionFrameRateAbs = 25;
+    AcquisitionFrameRateAbs = 1;
     FlashOn = true;
 }
 
 bool isValidFile(std::ifstream & file){
-    if (!file) {
-        std::cout << "Unfortunately, did not manage to open file\n\n";
+    if (!file)
         return false;
-    }else{
-        std::cout << "File was opened successfully!\n\n";
+    else
         return true;
-    }
 }
 
 // removing line separator as well
@@ -59,7 +56,7 @@ std::string removingSpaces(std::ifstream & file){
 
 }
 
-std::string removingQmarks(std::string & line){
+std::string extractFromQmarks(std::string & line){
     std::size_t lQmark = line.find('"');
     std::size_t rQmark = line.find('"', ++lQmark);
 
@@ -74,9 +71,10 @@ bool isBracketsValid(std::size_t l, std::size_t r){
 
 bool isFollowingStructure(const std::string & line, std::size_t from=0){
     std::size_t comma   = line.find(',', from);
-    std::size_t bracket = line.find('{', from);
+    std::size_t brace   = line.find('{', from);
+    std::size_t bracket = line.find('[', from);
 
-    return (bracket < comma);
+    return ((brace < comma) || (bracket < comma));
 }
 
 bool convertStrToBool(std::string line){
@@ -213,7 +211,7 @@ void Settings::fillingSettings(std::map<std::string, std::string> & fields){
     FlashOn = convertStrToBool(fuckingIterator->second);
 
     fuckingIterator = fields.find("PixelFormat");
-    PixelFormat = removingQmarks(fuckingIterator->second);
+    PixelFormat = extractFromQmarks(fuckingIterator->second);
 
     fuckingIterator = fields.find("GainControl");
     fillingGainControl(fuckingIterator->second);
