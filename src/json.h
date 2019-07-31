@@ -57,6 +57,8 @@ std::string extractFromQmarks(std::string & line);
 bool isBracketsValid(std::size_t l, std::size_t r);
 bool isFollowingStructure(const std::string & line, std::size_t from=0);
 bool convertStrToBool(std::string line);
+std::string readingKey(const std::string & line, std::size_t & cursor);
+std::string readingVal(const std::string & line, std::size_t & cursor);
 
 #endif //TEST_PARSER
 

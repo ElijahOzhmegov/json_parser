@@ -62,9 +62,23 @@ TEST(isFollowingStructure, HandlesDifferentStructures){
 
 
 TEST(convertStrToBool, HandlesConvertingStringToBool){
-    ASSERT_TRUE(convertStrToBool("true"));
-    ASSERT_FALSE(convertStrToBool("True"));
-    ASSERT_FALSE(convertStrToBool("alskdjfls"));
-    ASSERT_FALSE(convertStrToBool("false"));
+    ASSERT_TRUE  (convertStrToBool("true"));
+    ASSERT_FALSE (convertStrToBool("True"));
+    ASSERT_FALSE (convertStrToBool("alskdjfls"));
+    ASSERT_FALSE (convertStrToBool("false"));
 
+}
+
+TEST(readingKey, HandlesDifferentOptionsOfKeys){
+    std::size_t cursor = 0;
+
+    EXPECT_EQ(readingKey("foo \"bar\", smth", cursor), "bar");
+    EXPECT_NE(readingKey("foo bar, smth",     cursor), "bar");
+}
+
+TEST(readingVal, HandlesDifferentOptionsOfValue){
+    std::size_t cursor = 0;
+
+    EXPECT_EQ(readingVal("foo: bar , smth", cursor), " bar "); cursor=0;
+    EXPECT_EQ(readingVal("foo: 1111bbbbcccc ,", cursor), "1111bbbbcccc");
 }
