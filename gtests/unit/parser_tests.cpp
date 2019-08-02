@@ -7,7 +7,7 @@
 #include <fstream>
 
 #define TEST_PARSER
-#include "../src/json.h"
+#include "../../src/json.h"
 
 using namespace std;
 
