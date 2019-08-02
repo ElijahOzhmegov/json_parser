@@ -30,8 +30,6 @@ Settings::Settings(){
     AutoTargetValue = 0;
     PixelFormat     = "YUV422";
 
-    Resolution.Width  = 1024;
-    Resolution.Height = 1024;
 
     AcquisitionFrameRateAbs = 1;
     FlashOn = true;
@@ -83,7 +81,7 @@ isFollowingStructure(const std::string & line, std::size_t from=0){
     return (unsigned char) ((brace < comma)*isStructure + (bracket < comma)*isArray);
 }
 
-bool convertStrToBool(std::string line){
+bool strToBool(std::string line){
     return  (line == "true");
 }
 
@@ -200,61 +198,62 @@ readingStructure(const std::string & line, std::size_t cursor=0){
     return fields;
 }
 
-void Settings::fillingGainControl(std::string line){
-    std::map  <std::string, std::string> fields = readingStructure(line);
+std::string extractingValue(std::map<std::string, std::string> & from, std::string key){
+    std::map<std::string,std::string>::iterator it;
+    it = from.find(key);
 
-    std::map<std::string,std::string>::iterator it = fields.find("GainAuto");
-    if (it == fields.end()) return;
-    GainControl.GainAuto = convertStrToBool(it->second);
-
-    it = fields.find("GainRaw");
-    if (it == fields.end()) return;
-    GainControl.GainRaw = atoi(it->second.c_str());
+    return it->second;
 }
 
-void Settings::fillingExposure(std::string line){
-    std::map  <std::string, std::string> fields = readingStructure(line);
+void Settings::fillingStruct(   const std::string & name,
+                                const std::string & nameAuto,
+                                const std::string & nameRaw,
+                                std::map<std::string, std::string> & from) {
 
-    std::map<std::string,std::string>::iterator it = fields.find("ExposureTimeRaw");
+    std::string value = extractingValue(from, name);
+    std::map  <std::string, std::string> fields = readingStructure(value);
+    std::map<std::string,std::string>::iterator it;
+
+    it = fields.find(nameAuto);
     if (it == fields.end()) return;
-    Exposure.ExposureTimeRaw = convertStrToBool(it->second);
 
-    it = fields.find("ExposureTimeRaw");
+    if (nameAuto == "GainAuto")
+        GainControl.GainAuto          = strToBool(it->second);
+    if (nameAuto == "ExposureAuto")
+        Exposure.ExposureAuto         = strToBool(it->second);
+    if (nameAuto == "BalanceWhiteAuto")
+        BalanceWhite.BalanceWhiteAuto = strToBool(it->second);
+
+    it = fields.find(nameRaw);
     if (it == fields.end()) return;
-    Exposure.ExposureAuto = atoi(it->second.c_str());
-}
 
-void Settings::fillingBalanceWhite(std::string line) {
-    std::map  <std::string, std::string> fields = readingStructure(line);
-
-    std::map<std::string,std::string>::iterator it = fields.find("BalanceWhiteRaw");
-    if (it == fields.end()) return;
-    BalanceWhite.BalanceWhiteRaw = convertStrToBool(it->second);
-
-    it = fields.find("ExposureTimeRaw");
-    if (it == fields.end()) return;
-    Exposure.ExposureAuto = atoi(it->second.c_str());
+    if (nameAuto == "GainAuto")
+        GainControl.GainRaw          = atoi(it->second.c_str());
+    if (nameAuto == "ExposureAuto")
+        Exposure.ExposureTimeRaw     = atoi(it->second.c_str());
+    if (nameAuto == "BalanceWhiteAuto")
+        BalanceWhite.BalanceWhiteRaw = strtod(it->second.c_str(), NULL);
 }
 
 void Settings::fillingSettings(std::map<std::string, std::string> & fields){
-    std::map<std::string,std::string>::iterator fuckingIterator = fields.find("AcquisitionFrameRateAbs");
-    AcquisitionFrameRateAbs = strtod(fuckingIterator->second.c_str(), NULL);
+    Mode                    = atoi(   extractingValue(fields, "Mode"           ).c_str() );
+    AutoTargetValue         = atoi(   extractingValue(fields, "AutoTargetValue").c_str() );
+    AcquisitionFrameRateAbs = strtod( extractingValue(fields, "AcquisitionFrameRateAbs").c_str(), NULL );
 
-    fuckingIterator = fields.find("FlashOn");
-    FlashOn = convertStrToBool(fuckingIterator->second);
+    AutoFunctionProfile = extractingValue(fields, "AutoFunctionProfile");
+    PixelFormat         = extractingValue(fields, "PixelFormat");
+    Resolution          = extractingValue(fields, "Resolution");
 
-    fuckingIterator = fields.find("PixelFormat");
-    PixelFormat = extractFromQmarks(fuckingIterator->second);
+    AutoFunctionProfile = extractFromQmarks(AutoFunctionProfile);
+    PixelFormat         = extractFromQmarks(PixelFormat);
+    Resolution          = extractFromQmarks(Resolution);
 
-    fuckingIterator = fields.find("GainControl");
-    fillingGainControl(fuckingIterator->second);
+    FlashOn = strToBool(extractingValue(fields, "FlashOn"));
 
-    fuckingIterator = fields.find("Exposure");
-    fillingExposure(fuckingIterator->second);
 
-    std::cout << AcquisitionFrameRateAbs << " " << FlashOn << " " << PixelFormat << std::endl;
-    std::cout << GainControl.GainRaw << " " << GainControl.GainAuto << std::endl;
-    std::cout << Exposure.ExposureAuto << " " << Exposure.ExposureTimeRaw << std::endl;
+    fillingStruct("GainControl",  "GainAuto",         "GainRaw",         fields);
+    fillingStruct("Exposure",     "ExposureAuto",     "ExposureTimeRaw", fields);
+    fillingStruct("BalanceWhite", "BalanceWhiteAuto", "BalanceRatioRaw", fields);
 }
 
 void Settings::extract(const char * from){
@@ -266,8 +265,5 @@ void Settings::extract(const char * from){
     std::map  <std::string, std::string> fields = readingStructure(dataLine);
     fillingSettings(fields);
     file.close();
-
-
-    std::cout << dataLine << std::endl;
 }
 

@@ -65,10 +65,10 @@ TEST(isFollowingStructure, HandlesDifferentStructures){
 
 
 TEST(convertStrToBool, HandlesConvertingStringToBool){
-    ASSERT_TRUE  (convertStrToBool("true"));
-    ASSERT_FALSE (convertStrToBool("True"));
-    ASSERT_FALSE (convertStrToBool("alskdjfls"));
-    ASSERT_FALSE (convertStrToBool("false"));
+    ASSERT_TRUE  (strToBool("true"));
+    ASSERT_FALSE (strToBool("True"));
+    ASSERT_FALSE (strToBool("alskdjfls"));
+    ASSERT_FALSE (strToBool("false"));
 
 }
 

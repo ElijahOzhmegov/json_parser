@@ -13,7 +13,7 @@ IF( EXISTS "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json" )
 ENDIF()
 
 # google tests
-include_directories(gtests)
+#include_directories(gtests)
 
-add_executable(json_parser main.cpp src/json.h src/json.cpp src/support.cpp src/support.h)
+add_executable(json_parser main.cpp src/json.h src/json.cpp)
 #add_executable(json_parser main.cpp src/json.h src/json.cpp src/support.cpp src/support.h gtests/tmain.cpp gtests/unit/generic.cpp)
