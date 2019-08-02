@@ -13,5 +13,13 @@ TEST(BigPortal, local_portal)
     EXPECT_EQ(value, priv::get_val(value));
 }
 
+TEST(boolType, HandlesUnisignedChar){
+    unsigned char val = 4;
+
+    bool True = 1;
+
+    EXPECT_EQ(val * (True != 0), 4);
+}
+
 
 

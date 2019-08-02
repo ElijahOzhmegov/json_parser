@@ -12,6 +12,11 @@
 
 #include "json.h"
 
+namespace {
+    static const unsigned char isStructure = 0x1;
+    static const unsigned char isArray     = 0x2;
+};
+
 Settings::Settings(){
     GainControl.GainAuto = false;
     GainControl.GainRaw  = 0;
@@ -69,12 +74,13 @@ bool isBracketsValid(std::size_t l, std::size_t r){
               (l > r));
 }
 
-bool isFollowingStructure(const std::string & line, std::size_t from=0){
+unsigned char
+isFollowingStructure(const std::string & line, std::size_t from=0){
     std::size_t comma   = line.find(',', from);
     std::size_t brace   = line.find('{', from);
     std::size_t bracket = line.find('[', from);
 
-    return ((brace < comma) || (bracket < comma));
+    return (unsigned char) ((brace < comma)*isStructure + (bracket < comma)*isArray);
 }
 
 bool convertStrToBool(std::string line){
@@ -99,9 +105,26 @@ std::string readingVal(const std::string & line, std::size_t & cursor){
     return line.substr(lVal, rVal - lVal);
 }
 
-std::string findingStucture(const std::string & line, std::size_t & cursor){
-    std::size_t lBracket = line.find('{', cursor);
-    std::size_t rBracket = line.find('}', cursor);
+void choosingBorderType(char & lBorder, char & rBorder, unsigned char bracketType){
+    if (bracketType == isStructure){
+        lBorder = '{';
+        rBorder = '}';
+    } else if(bracketType == isArray){
+        lBorder = '[';
+        rBorder = ']';
+    }else{
+        std::cout << "Unknown Structure type" << std::endl;
+    }
+}
+
+std::string findingBrackets(const std::string & line, std::size_t & cursor, unsigned char bracketType){
+    char lBorder;
+    char rBorder;
+
+    choosingBorderType(lBorder, rBorder, bracketType);
+
+    std::size_t lBracket = line.find(lBorder, cursor);
+    std::size_t rBracket = line.find(rBorder, cursor);
 
     std::size_t rigidL = lBracket;
     std::size_t rigidR = rBracket;
@@ -109,17 +132,17 @@ std::string findingStucture(const std::string & line, std::size_t & cursor){
     int count = 1;
 
     do{
-        std::size_t tmpL = line.find('{', ++lBracket);
+        std::size_t tmpL = line.find(lBorder, ++lBracket);
 
         while (tmpL < rBracket){
             count++;
             lBracket = tmpL;
-            tmpL = line.find('{', ++tmpL);
+            tmpL = line.find(lBorder, ++tmpL);
         }
 
         if (count > 0){
             rigidR = rBracket;
-            rBracket = line.find('}', ++rBracket);
+            rBracket = line.find(rBorder, ++rBracket);
             count--;
         }
     }while (count != 0);
@@ -129,13 +152,23 @@ std::string findingStucture(const std::string & line, std::size_t & cursor){
     return line.substr(rigidL, rigidR - rigidL);
 }
 
+std::string findingStucture(const std::string & line, std::size_t & cursor){
+    return findingBrackets(line, cursor, isStructure);
+}
+
+std::string findingArray(const std::string & line, std::size_t & cursor){
+    return findingBrackets(line, cursor, isArray);
+}
+
 std::pair <std::string,std::string>
 readingField(const std::string & line, std::size_t & cursor){
     std::string key = readingKey(line, cursor);
     std::string val;
 
-    if (isFollowingStructure(line, ++cursor)){
-        val = findingStucture(line, cursor);
+    unsigned char structureType = isFollowingStructure(line, ++cursor);
+
+    if (structureType){
+        val = findingBrackets(line, cursor, structureType);
     }else{
         val = readingVal(line, cursor);
     }

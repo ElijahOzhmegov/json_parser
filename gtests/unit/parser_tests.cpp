@@ -52,12 +52,15 @@ TEST(isBracketsValid, HandlesDifferentBrackets){
 
 TEST(isFollowingStructure, HandlesDifferentStructures){
     std::string structure = "blah: {mistah: J, foo: bar},";
-    std::string diffrentStructure = "blah: [mistah: J, foo: bar],";
+    std::string array = "blah: [mistah: J, foo: bar],";
     std::string notStructure = "foo: bar, mistah: {big: B, lil: l},";
 
     ASSERT_TRUE (isFollowingStructure(structure));
-    ASSERT_TRUE (isFollowingStructure(diffrentStructure));
+    ASSERT_TRUE (isFollowingStructure(array));
     ASSERT_FALSE(isFollowingStructure(notStructure));
+
+    ASSERT_EQ(isFollowingStructure(structure), 0x1);
+    ASSERT_EQ(isFollowingStructure(array),     0x2);
 }
 
 
@@ -80,5 +83,229 @@ TEST(readingVal, HandlesDifferentOptionsOfValue){
     std::size_t cursor = 0;
 
     EXPECT_EQ(readingVal("foo: bar , smth", cursor), " bar "); cursor=0;
-    EXPECT_EQ(readingVal("foo: 1111bbbbcccc ,", cursor), "1111bbbbcccc");
+    EXPECT_EQ(readingVal("foo: 1111bbbbcccc ,", cursor), " 1111bbbbcccc "); cursor=0;
+    EXPECT_EQ(readingVal("foo:1111bbbbcccc,", cursor), "1111bbbbcccc");
+}
+
+TEST(choosingBorderType, HandlesDifferentBracketTypes){
+    char lBorder;
+    char rBorder;
+
+    choosingBorderType(lBorder, rBorder, 0x1);
+
+    EXPECT_EQ(lBorder, '{');
+    EXPECT_EQ(rBorder, '}');
+
+    choosingBorderType(lBorder, rBorder, 0x2);
+
+    EXPECT_EQ(lBorder, '[');
+    EXPECT_EQ(rBorder, ']');
+
+}
+
+TEST(findingBrackets, HandlesDifferentStructures){
+    std::size_t cursor = 0;
+
+    std::string structure = "blah: {mistah: J, foo: bar},";
+    std::string array     = "blah: [mistah: J, foo: bar],";
+
+    EXPECT_EQ(findingStucture(structure, cursor), "{mistah: J, foo: bar}"); cursor=0;
+    EXPECT_EQ(findingArray   (array,     cursor), "[mistah: J, foo: bar]"); cursor=0;
+}
+
+TEST(readingField, HandlesDifferentStructures){
+    std::string line_1 = "\"GainControl\":{\"GainAuto\":false,\"GainRaw\":42},\"Exposu";
+    std::string line_2 = "   \"required\": [\"id\", \"name\", \"price\"],";
+
+    std::size_t cursor = 0;
+    std::pair <std::string,std::string> field;
+
+
+    field = readingField(line_1, cursor); cursor = 0;
+    EXPECT_EQ(field.first, "GainControl");
+    EXPECT_EQ(field.second, "{\"GainAuto\":false,\"GainRaw\":42}");
+
+    field = readingField(line_2, cursor); cursor = 0;
+    EXPECT_EQ(field.first, "required");
+    EXPECT_EQ(field.second, "[\"id\", \"name\", \"price\"]");
+}
+
+TEST(readingStructure, HandlesSimpleStructure){
+    std::string line =  "{"
+                        "        \"Mode\": 2,"
+                        "        \"AutoTargetValue\": 128,"
+                        "        \"AutoFunctionProfile\" : \"None\","
+                        "        \"PixelFormat\": \"YUV422\","
+                        "        \"Resolution\": \"1224x1024\","
+                        "        \"AcquisitionFrameRateAbs\": 1.9,"
+                        "        \"FlashOn\": true"
+                        "}";
+
+    std::map  <std::string, std::string> fields = readingStructure(line);
+    std::map<std::string,std::string>::iterator it;
+
+
+    it = fields.find("Mode");
+    EXPECT_EQ(it->second, " 2");
+
+    it = fields.find("AutoTargetValue");
+    EXPECT_EQ(it->second, " 128");
+
+    it = fields.find("PixelFormat");
+    EXPECT_EQ(it->second, " \"YUV422\"");
+
+    it = fields.find("Resolution");
+    EXPECT_EQ(it->second, " \"1224x1024\"");
+
+    it = fields.find("AcquisitionFrameRateAbs");
+    EXPECT_EQ(it->second, " 1.9");
+
+    it = fields.find("FlashOn");
+    EXPECT_EQ(it->second, " true");
+}
+
+TEST(readingStructure, HandlesRegularStructure){
+    std::string line =  "{"
+                        "    \"Mode\": 2,"
+                        "    \"GainControl\": {"
+                        "        \"GainAuto\": false,"
+                        "        \"GainRaw\": 42"
+                        "    },"
+                        "    \"Exposure\": {"
+                        "        \"ExposureAuto\": true,"
+                        "        \"ExposureTimeRaw\": 0"
+                        "    },"
+                        "    \"BalanceWhite\": {"
+                        "        \"BalanceWhiteAuto\": false,"
+                        "        \"BalanceRatioRaw\": 1.2"
+                        "    },"
+                        "    \"AutoTargetValue\": 128,"
+                        "    \"AutoFunctionProfile\" : \"None\","
+                        "    \"PixelFormat\": \"YUV422\","
+                        "    \"Resolution\": \"1224x1024\","
+                        "    \"AcquisitionFrameRateAbs\": 1.9,"
+                        "    \"FlashOn\": true"
+                        "}";
+
+    std::map  <std::string, std::string> fields = readingStructure(line);
+    std::map<std::string,std::string>::iterator it;
+
+
+    it = fields.find("GainControl");
+    EXPECT_EQ(it->second,   "{"
+                            "        \"GainAuto\": false,"
+                            "        \"GainRaw\": 42"
+                            "    }");
+
+    it = fields.find("Exposure");
+    EXPECT_EQ(it->second,   "{"
+                            "        \"ExposureAuto\": true,"
+                            "        \"ExposureTimeRaw\": 0"
+                            "    }");
+
+    it = fields.find("BalanceWhite");
+    EXPECT_EQ(it->second,   "{"
+                            "        \"BalanceWhiteAuto\": false,"
+                            "        \"BalanceRatioRaw\": 1.2"
+                            "    }");
+    it = fields.find("Mode");
+    EXPECT_EQ(it->second, " 2");
+
+    it = fields.find("AutoTargetValue");
+    EXPECT_EQ(it->second, " 128");
+
+    it = fields.find("PixelFormat");
+    EXPECT_EQ(it->second, " \"YUV422\"");
+
+    it = fields.find("Resolution");
+    EXPECT_EQ(it->second, " \"1224x1024\"");
+
+    it = fields.find("AcquisitionFrameRateAbs");
+    EXPECT_EQ(it->second, " 1.9");
+
+    it = fields.find("FlashOn");
+    EXPECT_EQ(it->second, " true");
+}
+
+TEST(readingStructure, HandlesComplexStructure){
+    std::string line =  "{"
+                        "    \"$schema\": \"http://json-schema.org/schema#\","
+                        "            \"title\": \"Product\","
+                        "            \"type\": \"object\","
+                        "            \"required\": [\"id\", \"name\", \"price\"],"
+                        "    \"properties\": {"
+                        "        \"id\": {"
+                        "            \"type\": \"number\","
+                        "                    \"description\": \"Product identifier\""
+                        "        },"
+                        "        \"name\": {"
+                        "            \"type\": \"string\","
+                        "                    \"description\": \"Name of the product\""
+                        "        },"
+                        "        \"price\": {"
+                        "            \"type\": \"number\","
+                        "                    \"minimum\": 0"
+                        "        },"
+                        "        \"tags\": {"
+                        "            \"type\": \"array\","
+                        "                    \"items\": {"
+                        "                \"type\": \"string\""
+                        "            }"
+                        "        },"
+                        "        \"stock\": {"
+                        "            \"type\": \"object\","
+                        "                    \"properties\": {"
+                        "                \"warehouse\": {"
+                        "                    \"type\": \"number\""
+                        "                },"
+                        "                \"retail\": {"
+                        "                    \"type\": \"number\""
+                        "                }"
+                        "            }"
+                        "        }"
+                        "    }"
+                        "}";
+
+    std::map  <std::string, std::string> fields = readingStructure(line);
+    std::map<std::string,std::string>::iterator it;
+
+
+    it = fields.find("$schema");
+    EXPECT_EQ(it->second, " \"http://json-schema.org/schema#\"");
+
+    it = fields.find("required");
+    EXPECT_EQ(it->second, "[\"id\", \"name\", \"price\"]");
+
+    it = fields.find("properties");
+    EXPECT_EQ(it->second,   "{"
+                            "        \"id\": {"
+                            "            \"type\": \"number\","
+                            "                    \"description\": \"Product identifier\""
+                            "        },"
+                            "        \"name\": {"
+                            "            \"type\": \"string\","
+                            "                    \"description\": \"Name of the product\""
+                            "        },"
+                            "        \"price\": {"
+                            "            \"type\": \"number\","
+                            "                    \"minimum\": 0"
+                            "        },"
+                            "        \"tags\": {"
+                            "            \"type\": \"array\","
+                            "                    \"items\": {"
+                            "                \"type\": \"string\""
+                            "            }"
+                            "        },"
+                            "        \"stock\": {"
+                            "            \"type\": \"object\","
+                            "                    \"properties\": {"
+                            "                \"warehouse\": {"
+                            "                    \"type\": \"number\""
+                            "                },"
+                            "                \"retail\": {"
+                            "                    \"type\": \"number\""
+                            "                }"
+                            "            }"
+                            "        }"
+                            "    }");
 }

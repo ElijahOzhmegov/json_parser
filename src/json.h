@@ -59,6 +59,12 @@ bool isFollowingStructure(const std::string & line, std::size_t from=0);
 bool convertStrToBool(std::string line);
 std::string readingKey(const std::string & line, std::size_t & cursor);
 std::string readingVal(const std::string & line, std::size_t & cursor);
+void choosingBorderType(char & lBorder, char & rBorder, unsigned char bracketType);
+std::string findingStucture(const std::string & line, std::size_t & cursor);
+std::string findingArray(const std::string & line, std::size_t & cursor);
+std::pair <std::string,std::string> readingField(const std::string & line, std::size_t & cursor);
+std::map  <std::string, std::string>
+        readingStructure(const std::string & line, std::size_t cursor=0);
 
 #endif //TEST_PARSER
 
